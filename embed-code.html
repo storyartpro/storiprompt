@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СториPromt - Встраиваемый код</title>
+    <style>
+        /* Стили для контейнера iframe */
+        .storiprompt-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Стили для iframe */
+        .storiprompt-iframe {
+            width: 100%;
+            height: 700px;
+            border: none;
+            overflow: hidden;
+        }
+        
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 768px) {
+            .storiprompt-iframe {
+                height: 600px;
+            }
+        }
+        
+        /* Адаптивность для маленьких экранов */
+        @media (max-width: 480px) {
+            .storiprompt-iframe {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Контейнер для встраивания СториPromt -->
+    <div class="storiprompt-container">
+        <iframe 
+            src="https://efzsxupm.manus.space" 
+            class="storiprompt-iframe" 
+            title="СториPromt - Приложение для обучения промт-инжинирингу" 
+            allow="clipboard-write"
+            loading="lazy"
+            scrolling="yes">
+        </iframe>
+    </div>
+</body>
+</html>
