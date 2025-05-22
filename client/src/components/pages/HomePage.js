@@ -1,111 +1,75 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const HomePage = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Добро пожаловать в СториPromt</h1>
+        <h1 className="text-4xl font-bold mb-4">Добро пожаловать в StoriPrompt</h1>
         <p className="text-xl text-gray-600">
-          Платформа для обучения и совершенствования навыков промт-инжиниринга
+          Ваша библиотека промптов для эффективной работы с искусственным интеллектом
         </p>
       </div>
-
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-          <h2 className="text-2xl font-semibold text-primary-600 mb-4">31 день промт-упражнений</h2>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-4">Каталог промптов</h2>
           <p className="text-gray-600 mb-4">
-            Ежедневные упражнения для развития навыков создания эффективных промптов.
-            Отслеживайте свой прогресс и улучшайте результаты.
+            Изучите нашу коллекцию готовых промптов для различных задач и областей применения.
           </p>
-          <a 
-            href="/exercises" 
-            className="inline-block px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
-          >
-            Начать упражнения
-          </a>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-          <h2 className="text-2xl font-semibold text-primary-600 mb-4">Каталог промптов</h2>
-          <p className="text-gray-600 mb-4">
-            Библиотека готовых промптов для различных задач.
-            Добавляйте, редактируйте и используйте промпты из каталога.
-          </p>
-          <a 
-            href="/catalog" 
-            className="inline-block px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
-          >
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             Перейти в каталог
-          </a>
+          </button>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-4">Админ-панель</h2>
+          <p className="text-gray-600 mb-4">
+            Управляйте контентом, настраивайте дизайн и импортируйте/экспортируйте данные.
+          </p>
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Войти в админ-панель
+          </button>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-          <h2 className="text-xl font-semibold text-primary-600 mb-3">Шаблоны и инструкции</h2>
-          <p className="text-gray-600 mb-4">
-            Готовые шаблоны и инструкции для создания эффективных промптов.
-          </p>
-          <a 
-            href="/templates" 
-            className="text-primary-600 hover:text-primary-800 font-medium"
-          >
-            Изучить шаблоны →
-          </a>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-          <h2 className="text-xl font-semibold text-primary-600 mb-3">Шаблонизатор</h2>
-          <p className="text-gray-600 mb-4">
-            Конструктор промптов по готовым шаблонам для быстрого создания эффективных запросов.
-          </p>
-          <a 
-            href="/template-builder" 
-            className="text-primary-600 hover:text-primary-800 font-medium"
-          >
-            Создать промпт →
-          </a>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-          <h2 className="text-xl font-semibold text-primary-600 mb-3">О проекте</h2>
-          <p className="text-gray-600 mb-4">
-            Узнайте больше о проекте, его целях и авторах.
-          </p>
-          <a 
-            href="/about" 
-            className="text-primary-600 hover:text-primary-800 font-medium"
-          >
-            Подробнее →
-          </a>
-        </div>
-      </div>
-
-      <div className="bg-gray-100 rounded-lg p-6 border border-gray-200">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Начните прямо сейчас</h2>
-        <p className="text-gray-600 mb-6">
-          Выберите один из разделов и начните совершенствовать свои навыки промт-инжиниринга.
-          Регулярная практика поможет вам достичь лучших результатов в работе с AI.
-        </p>
-        <div className="flex flex-wrap gap-4">
-          <a 
-            href="/exercises" 
-            className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
-          >
-            Упражнения
-          </a>
-          <a 
-            href="/catalog" 
-            className="px-4 py-2 bg-secondary-600 text-white rounded hover:bg-secondary-700 transition-colors"
-          >
-            Каталог
-          </a>
-          <a 
-            href="/template-builder" 
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-          >
-            Шаблонизатор
-          </a>
+      
+      <div className="bg-gray-100 p-8 rounded-lg">
+        <h2 className="text-2xl font-semibold mb-4 text-center">Возможности приложения</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="text-center">
+            <div className="bg-blue-100 p-4 rounded-full inline-block mb-4">
+              <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-medium mb-2">Библиотека промптов</h3>
+            <p className="text-gray-600">
+              Более 150 готовых промптов для различных задач
+            </p>
+          </div>
+          
+          <div className="text-center">
+            <div className="bg-blue-100 p-4 rounded-full inline-block mb-4">
+              <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-medium mb-2">Настройка дизайна</h3>
+            <p className="text-gray-600">
+              Гибкая настройка внешнего вида приложения
+            </p>
+          </div>
+          
+          <div className="text-center">
+            <div className="bg-blue-100 p-4 rounded-full inline-block mb-4">
+              <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-medium mb-2">Импорт/Экспорт</h3>
+            <p className="text-gray-600">
+              Удобный обмен данными в формате CSV
+            </p>
+          </div>
         </div>
       </div>
     </div>
