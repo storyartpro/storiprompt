@@ -4,37 +4,38 @@ const AdminLogin = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Simple authentication - in a real app, this would be handled securely
+    // Simple authentication (in a real app, this would be done server-side)
     if (username === 'test' && password === 'testpass') {
+      // Store authentication state
       localStorage.setItem('adminAuthenticated', 'true');
       onLogin();
     } else {
       setError('Неверное имя пользователя или пароль');
     }
   };
-
+  
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Админ-панель StoriPrompt</h1>
-          <p className="mt-2 text-sm text-gray-600">Введите учетные данные для входа</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Вход в админ-панель
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Введите учетные данные для доступа
+          </p>
         </div>
-        
-        {error && (
-          <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-            {error}
-          </div>
-        )}
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="username" className="sr-only">Имя пользователя</label>
+              <label htmlFor="username" className="sr-only">
+                Имя пользователя
+              </label>
               <input
                 id="username"
                 name="username"
@@ -47,7 +48,9 @@ const AdminLogin = ({ onLogin }) => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">Пароль</label>
+              <label htmlFor="password" className="sr-only">
+                Пароль
+              </label>
               <input
                 id="password"
                 name="password"
@@ -60,7 +63,11 @@ const AdminLogin = ({ onLogin }) => {
               />
             </div>
           </div>
-
+          
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+          
           <div>
             <button
               type="submit"

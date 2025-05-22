@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import AdminLogin from './components/admin/AdminLogin';
-import AdminDashboard from './components/admin/AdminDashboard';
+import AdminLogin from '../admin/AdminLogin';
+import AdminDashboard from '../admin/AdminDashboard';
 
 const AdminPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -17,15 +17,10 @@ const AdminPage = () => {
     setIsAuthenticated(true);
   };
   
-  const handleLogout = () => {
-    localStorage.removeItem('adminAuthenticated');
-    setIsAuthenticated(false);
-  };
-  
   return (
     <div>
       {isAuthenticated ? (
-        <AdminDashboard onLogout={handleLogout} />
+        <AdminDashboard />
       ) : (
         <AdminLogin onLogin={handleLogin} />
       )}

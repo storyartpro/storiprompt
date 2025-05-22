@@ -3,12 +3,13 @@ import Papa from 'papaparse';
 
 const ImportExport = () => {
   const [activeTab, setActiveTab] = useState('import');
-  const [csvFile, setCsvFile] = useState(null);
-  const [previewData, setPreviewData] = useState(null);
   const [importType, setImportType] = useState('prompts');
   const [exportType, setExportType] = useState('prompts');
-  const [validationErrors, setValidationErrors] = useState([]);
+  const [csvFile, setCsvFile] = useState(null);
+  const [previewData, setPreviewData] = useState(null);
+  const [importStatus, setImportStatus] = useState(null);
   
+  // Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setCsvFile(file);
@@ -18,281 +19,350 @@ const ImportExport = () => {
         header: true,
         complete: (results) => {
           setPreviewData(results.data);
-          validateCsvData(results.data);
         },
         error: (error) => {
           console.error('Error parsing CSV:', error);
-          setValidationErrors(['Ошибка при чтении CSV файла. Проверьте формат файла.']);
+          setImportStatus({
+            success: false,
+            message: `Ошибка при чтении файла: ${error.message}`
+          });
         }
       });
+    } else {
+      setPreviewData(null);
     }
   };
   
-  const validateCsvData = (data) => {
-    const errors = [];
-    
-    if (data.length === 0) {
-      errors.push('CSV файл не содержит данных.');
-      setValidationErrors(errors);
-      return;
-    }
-    
-    // Check required fields based on import type
-    if (importType === 'prompts') {
-      data.forEach((row, index) => {
-        if (!row.title) {
-          errors.push(`Строка ${index + 1}: Отсутствует обязательное поле "title".`);
-        }
-        if (!row.prompt_text) {
-          errors.push(`Строка ${index + 1}: Отсутствует обязательное поле "prompt_text".`);
-        }
-      });
-    } else if (importType === 'categories') {
-      data.forEach((row, index) => {
-        if (!row.name) {
-          errors.push(`Строка ${index + 1}: Отсутствует обязательное поле "name".`);
-        }
-      });
-    } else if (importType === 'tags') {
-      data.forEach((row, index) => {
-        if (!row.name) {
-          errors.push(`Строка ${index + 1}: Отсутствует обязательное поле "name".`);
-        }
-      });
-    }
-    
-    setValidationErrors(errors);
-  };
-  
+  // Handle import
   const handleImport = () => {
-    if (validationErrors.length > 0) {
-      alert('Пожалуйста, исправьте ошибки перед импортом.');
+    if (!csvFile || !previewData) {
+      setImportStatus({
+        success: false,
+        message: 'Пожалуйста, выберите файл CSV для импорта'
+      });
       return;
     }
     
-    // In a real app, this would send data to an API
-    alert(`Импортировано ${previewData.length} записей типа "${importType}"`);
-    
-    // Reset state
-    setCsvFile(null);
-    setPreviewData(null);
-    setValidationErrors([]);
+    try {
+      // Validate data based on import type
+      let isValid = true;
+      let errorMessage = '';
+      
+      if (importType === 'prompts') {
+        // Check if required fields exist
+        const requiredFields = ['title', 'content', 'category'];
+        for (const field of requiredFields) {
+          if (!previewData[0].hasOwnProperty(field)) {
+            isValid = false;
+            errorMessage = `Отсутствует обязательное поле: ${field}`;
+            break;
+          }
+        }
+      } else if (importType === 'categories') {
+        // Check if required fields exist
+        if (!previewData[0].hasOwnProperty('name')) {
+          isValid = false;
+          errorMessage = 'Отсутствует обязательное поле: name';
+        }
+      } else if (importType === 'tags') {
+        // Check if required fields exist
+        if (!previewData[0].hasOwnProperty('name')) {
+          isValid = false;
+          errorMessage = 'Отсутствует обязательное поле: name';
+        }
+      }
+      
+      if (!isValid) {
+        setImportStatus({
+          success: false,
+          message: errorMessage
+        });
+        return;
+      }
+      
+      // Process and save data
+      let existingData = [];
+      const storageKey = importType;
+      
+      const storedData = localStorage.getItem(storageKey);
+      if (storedData) {
+        existingData = JSON.parse(storedData);
+      }
+      
+      // Transform CSV data to match our data structure
+      const newData = previewData.map((item, index) => {
+        const newItem = { ...item, id: Date.now() + index };
+        
+        // Handle special fields
+        if (importType === 'prompts' && item.tags) {
+          newItem.tags = item.tags.split(',').map(tag => tag.trim());
+        }
+        
+        return newItem;
+      });
+      
+      // Merge existing and new data
+      const mergedData = [...existingData, ...newData];
+      
+      // Save to localStorage
+      localStorage.setItem(storageKey, JSON.stringify(mergedData));
+      
+      setImportStatus({
+        success: true,
+        message: `Успешно импортировано ${newData.length} записей`
+      });
+    } catch (error) {
+      console.error('Import error:', error);
+      setImportStatus({
+        success: false,
+        message: `Ошибка при импорте: ${error.message}`
+      });
+    }
   };
   
+  // Handle export
   const handleExport = () => {
-    // Mock data for export
-    let dataToExport = [];
-    
-    if (exportType === 'prompts') {
-      dataToExport = [
-        { id: 1, title: 'SEO-карточка товара', prompt_text: 'Создай SEO-оптимизированную карточку...', category: 'Бизнес-задачи', status: 'готов' },
-        { id: 2, title: 'Анализ структуры сайта', prompt_text: 'Проанализируй структуру сайта...', category: 'Бизнес-задачи', status: 'готов' },
-      ];
-    } else if (exportType === 'categories') {
-      dataToExport = [
-        { id: 1, name: 'Бизнес-задачи и маркетинг', description: 'Промпты для бизнес-задач' },
-        { id: 2, name: 'Генерация и редактирование текста', description: 'Промпты для работы с текстом' },
-      ];
-    } else if (exportType === 'tags') {
-      dataToExport = [
-        { id: 1, name: 'SEO' },
-        { id: 2, name: 'WooCommerce' },
-        { id: 3, name: 'контент' },
-      ];
+    try {
+      // Get data from localStorage
+      const storageKey = exportType;
+      const storedData = localStorage.getItem(storageKey);
+      
+      if (!storedData) {
+        setImportStatus({
+          success: false,
+          message: `Нет данных для экспорта типа: ${exportType}`
+        });
+        return;
+      }
+      
+      const data = JSON.parse(storedData);
+      
+      // Transform data for CSV export
+      const exportData = data.map(item => {
+        const exportItem = { ...item };
+        
+        // Handle special fields
+        if (exportType === 'prompts' && Array.isArray(item.tags)) {
+          exportItem.tags = item.tags.join(', ');
+        }
+        
+        // Remove id field
+        delete exportItem.id;
+        
+        return exportItem;
+      });
+      
+      // Convert to CSV
+      const csv = Papa.unparse(exportData);
+      
+      // Create download link
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${exportType}_export_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setImportStatus({
+        success: true,
+        message: `Успешно экспортировано ${exportData.length} записей`
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      setImportStatus({
+        success: false,
+        message: `Ошибка при экспорте: ${error.message}`
+      });
     }
-    
-    // Convert to CSV
-    const csv = Papa.unparse(dataToExport);
-    
-    // Create download link
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${exportType}_export.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
-
+  
+  const renderImportTab = () => (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Тип данных для импорта</label>
+        <select
+          value={importType}
+          onChange={(e) => setImportType(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="prompts">Промпты</option>
+          <option value="categories">Категории</option>
+          <option value="tags">Теги</option>
+        </select>
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Файл CSV</label>
+        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+          <div className="space-y-1 text-center">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 48 48"
+              aria-hidden="true"
+            >
+              <path
+                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <div className="flex text-sm text-gray-600">
+              <label
+                htmlFor="file-upload"
+                className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+              >
+                <span>Загрузить файл</span>
+                <input
+                  id="file-upload"
+                  name="file-upload"
+                  type="file"
+                  className="sr-only"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                />
+              </label>
+              <p className="pl-1">или перетащите сюда</p>
+            </div>
+            <p className="text-xs text-gray-500">CSV до 10MB</p>
+          </div>
+        </div>
+      </div>
+      
+      {previewData && previewData.length > 0 && (
+        <div>
+          <h3 className="text-lg font-medium text-gray-900">Предпросмотр данных</h3>
+          <div className="mt-2 overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  {Object.keys(previewData[0]).map((key) => (
+                    <th
+                      key={key}
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {key}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {previewData.slice(0, 5).map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    {Object.keys(previewData[0]).map((key) => (
+                      <td key={`${rowIndex}-${key}`} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {row[key]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {previewData.length > 5 && (
+              <p className="mt-2 text-sm text-gray-500">
+                Показано 5 из {previewData.length} строк
+              </p>
+            )}
+          </div>
+          
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleImport}
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Импортировать данные
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+  
+  const renderExportTab = () => (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Тип данных для экспорта</label>
+        <select
+          value={exportType}
+          onChange={(e) => setExportType(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="prompts">Промпты</option>
+          <option value="categories">Категории</option>
+          <option value="tags">Теги</option>
+        </select>
+      </div>
+      
+      <div>
+        <button
+          type="button"
+          onClick={handleExport}
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          Экспортировать в CSV
+        </button>
+      </div>
+    </div>
+  );
+  
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
+    <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           <button
-            onClick={() => setActiveTab('import')}
             className={`${
               activeTab === 'import'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            onClick={() => setActiveTab('import')}
           >
-            Импорт CSV
+            Импорт
           </button>
           <button
-            onClick={() => setActiveTab('export')}
             className={`${
               activeTab === 'export'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            onClick={() => setActiveTab('export')}
           >
-            Экспорт CSV
+            Экспорт
           </button>
         </nav>
       </div>
       
       <div className="mt-6">
-        {activeTab === 'import' ? (
-          <div>
-            <div className="mb-6">
-              <label htmlFor="import-type" className="block text-sm font-medium text-gray-700">
-                Тип данных для импорта
-              </label>
-              <select
-                id="import-type"
-                value={importType}
-                onChange={(e) => setImportType(e.target.value)}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-              >
-                <option value="prompts">Промпты</option>
-                <option value="categories">Категории</option>
-                <option value="tags">Теги</option>
-              </select>
-            </div>
-            
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700">
-                Загрузить CSV файл
-              </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                <div className="space-y-1 text-center">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+        {activeTab === 'import' ? renderImportTab() : renderExportTab()}
+        
+        {importStatus && (
+          <div className={`mt-4 p-4 rounded-md ${importStatus.success ? 'bg-green-50' : 'bg-red-50'}`}>
+            <div className="flex">
+              <div className="flex-shrink-0">
+                {importStatus.success ? (
+                  <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <div className="flex text-sm text-gray-600">
-                    <label
-                      htmlFor="file-upload"
-                      className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                    >
-                      <span>Загрузить файл</span>
-                      <input
-                        id="file-upload"
-                        name="file-upload"
-                        type="file"
-                        accept=".csv"
-                        className="sr-only"
-                        onChange={handleFileChange}
-                      />
-                    </label>
-                    <p className="pl-1">или перетащите сюда</p>
-                  </div>
-                  <p className="text-xs text-gray-500">CSV до 10MB</p>
-                </div>
-              </div>
-            </div>
-            
-            {validationErrors.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-sm font-medium text-red-800">Ошибки валидации:</h3>
-                <ul className="mt-2 text-sm text-red-700 list-disc pl-5">
-                  {validationErrors.map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {previewData && (
-              <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Предпросмотр данных:</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        {Object.keys(previewData[0]).map((key) => (
-                          <th
-                            key={key}
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {key}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {previewData.slice(0, 5).map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                          {Object.values(row).map((value, valueIndex) => (
-                            <td
-                              key={valueIndex}
-                              className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            >
-                              {value}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {previewData.length > 5 && (
-                  <p className="mt-2 text-xs text-gray-500">
-                    Показано 5 из {previewData.length} записей
-                  </p>
+                ) : (
+                  <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
                 )}
               </div>
-            )}
-            
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                onClick={handleImport}
-                disabled={!previewData || validationErrors.length > 0}
-              >
-                Импортировать
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div className="mb-6">
-              <label htmlFor="export-type" className="block text-sm font-medium text-gray-700">
-                Тип данных для экспорта
-              </label>
-              <select
-                id="export-type"
-                value={exportType}
-                onChange={(e) => setExportType(e.target.value)}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-              >
-                <option value="prompts">Промпты</option>
-                <option value="categories">Категории</option>
-                <option value="tags">Теги</option>
-              </select>
-            </div>
-            
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                onClick={handleExport}
-              >
-                Экспортировать CSV
-              </button>
+              <div className="ml-3">
+                <h3 className={`text-sm font-medium ${importStatus.success ? 'text-green-800' : 'text-red-800'}`}>
+                  {importStatus.success ? 'Успешно' : 'Ошибка'}
+                </h3>
+                <div className={`mt-2 text-sm ${importStatus.success ? 'text-green-700' : 'text-red-700'}`}>
+                  <p>{importStatus.message}</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
